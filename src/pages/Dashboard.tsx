@@ -542,7 +542,7 @@ export const Dashboard: React.FC<{ setActivePage: (page: string) => void }> = ({
                 </button>
               </div>
               
-              <div className="flex items-center gap-4">
+              <div className="flex items-start gap-4">
                 <div className="rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center flex-shrink-0 border border-slate-200/40 dark:border-slate-700/40 shadow-sm" style={{ width: '88px', height: '88px' }}>
                   {displayExec && (displayExec.avatarUrl || getExecAvatar(displayExec.name)) ? (
                     <img 
@@ -558,15 +558,19 @@ export const Dashboard: React.FC<{ setActivePage: (page: string) => void }> = ({
                     <span className="text-3xl font-bold text-slate-400">{displayExec ? displayExec.name.charAt(0) : ''}</span>
                   )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-bold text-slate-800 dark:text-white truncate">{displayExec ? displayExec.name : ''}</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">
-                    {displayExec ? (topExecActing ? `${displayExec.position} (รักษาราชการแทน)` : displayExec.position) : ''}
-                  </p>
+                <div className="flex-1 min-w-0 flex flex-col justify-between h-[88px]">
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800 dark:text-white truncate">{displayExec ? displayExec.name : ''}</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">
+                      {displayExec ? (topExecActing ? `${displayExec.position} (รักษาราชการแทน)` : displayExec.position) : ''}
+                    </p>
+                  </div>
+                  <div className="flex justify-end">
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${getStatusBadgeClass(topExecActing ? 'รักษาราชการแทน' : topExecStatus.status)}`}>
+                      {topExecActing ? 'รักษาราชการแทน' : topExecStatus.status}
+                    </span>
+                  </div>
                 </div>
-                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${getStatusBadgeClass(topExecActing ? 'รักษาราชการแทน' : topExecStatus.status)}`}>
-                  {topExecActing ? 'รักษาราชการแทน' : topExecStatus.status}
-                </span>
               </div>
 
               {topExecStatus.status !== 'อยู่ปฏิบัติราชการ' && (
