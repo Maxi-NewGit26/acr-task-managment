@@ -465,7 +465,7 @@ export const Dashboard: React.FC<{ setActivePage: (page: string) => void }> = ({
       {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
         {/* KPI 1 (Pastel Blue) */}
-        <div className="relative overflow-hidden flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-[#e8f1fc] dark:bg-[#1a2d42]/30 border border-[#c1d6ec]/50 dark:border-[#1c354e]/30 shadow-[0_8px_30px_rgb(0,0,0,0.01)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
+        <div className="relative overflow-hidden flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-[#e8f1fc] dark:bg-[#1a2d42]/45 border border-[#c1d6ec]/50 dark:border-[#1c354e]/30 shadow-[0_8px_30px_rgb(0,0,0,0.01)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
           <div className="relative z-10 text-left">
             <div className="text-[10px] sm:text-xs font-bold text-[#39668f] dark:text-[#a3c2e1] uppercase tracking-wider">ภารกิจวันนี้</div>
             <div className="text-base sm:text-2xl font-bold text-[#1c354e] dark:text-white mt-1">{totalTasksToday} ภารกิจ</div>
@@ -480,7 +480,7 @@ export const Dashboard: React.FC<{ setActivePage: (page: string) => void }> = ({
         </div>
 
         {/* KPI 2 (Pastel Green) */}
-        <div className="relative overflow-hidden flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-[#e6f4ea] dark:bg-[#1a3825]/30 border border-[#c2e7cc]/50 dark:border-[#1e3d29]/30 shadow-[0_8px_30px_rgb(0,0,0,0.01)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
+        <div className="relative overflow-hidden flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-[#e6f4ea] dark:bg-[#1a3825]/45 border border-[#c2e7cc]/50 dark:border-[#1e3d29]/30 shadow-[0_8px_30px_rgb(0,0,0,0.01)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
           <div className="relative z-10 text-left">
             <div className="text-[10px] sm:text-xs font-bold text-[#137333] dark:text-[#81c784] uppercase tracking-wider">ห้องประชุมที่จอง</div>
             <div className="text-base sm:text-2xl font-bold text-[#0f5224] dark:text-white mt-1">{activeBookingsToday} ห้อง</div>
@@ -495,7 +495,7 @@ export const Dashboard: React.FC<{ setActivePage: (page: string) => void }> = ({
         </div>
 
         {/* KPI 3 (Pastel Yellow/Amber) */}
-        <div className="relative overflow-hidden flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-[#fef7e0] dark:bg-[#3d331a]/30 border border-[#feefc3]/50 dark:border-[#3a3018]/30 shadow-[0_8px_30px_rgb(0,0,0,0.01)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
+        <div className="relative overflow-hidden flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-[#fef7e0] dark:bg-[#3d331a]/45 border border-[#feefc3]/50 dark:border-[#3a3018]/30 shadow-[0_8px_30px_rgb(0,0,0,0.01)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
           <div className="relative z-10 text-left">
             <div className="text-[10px] sm:text-xs font-bold text-[#b06000] dark:text-[#ffd54f] uppercase tracking-wider">ห้อง VIP รออนุมัติ</div>
             <div className="text-base sm:text-2xl font-bold text-[#7c4300] dark:text-white mt-1">{pendingApprovalsCount} รายการ</div>
@@ -510,7 +510,7 @@ export const Dashboard: React.FC<{ setActivePage: (page: string) => void }> = ({
         </div>
 
         {/* KPI 4 (Pastel Purple) */}
-        <div className="relative overflow-hidden flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-[#f3e8fd] dark:bg-[#2d1b4b]/30 border border-[#e9d2fd]/50 dark:border-[#2b1947]/30 shadow-[0_8px_30px_rgb(0,0,0,0.01)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
+        <div className="relative overflow-hidden flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-[#f3e8fd] dark:bg-[#2d1b4b]/45 border border-[#e9d2fd]/50 dark:border-[#2b1947]/30 shadow-[0_8px_30px_rgb(0,0,0,0.01)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
           <div className="relative z-10 text-left">
             <div className="text-[10px] sm:text-xs font-bold text-[#6200ee] dark:text-[#b388ff] uppercase tracking-wider">งานเตรียมห้อง</div>
             <div className="text-base sm:text-2xl font-bold text-[#4a00b0] dark:text-white mt-1">{pendingAssignmentsToday} งาน</div>

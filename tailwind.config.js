@@ -8,6 +8,10 @@ export default {
   theme: {
     extend: {
       colors: {
+        slate: {
+          900: '#182235', // Brighter slate-900 for dark mode cards/header/sidebar
+          950: '#0b101b', // Slightly brighter page background
+        },
         enterprise: {
           50: '#f3f7fb',
           100: '#e0eaf5',
