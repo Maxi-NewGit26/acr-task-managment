@@ -264,6 +264,14 @@ export const Dashboard: React.FC<{ setActivePage: (page: string) => void }> = ({
     return b.startTime && b.startTime.startsWith(baseDate) && b.approvalStatus !== 'Rejected' && task && todaysTasks.includes(task);
   });
 
+  // Filter active in-progress tasks (inside start & end time window)
+  const inProgressTasks = todaysTasks.filter(t => {
+    if (t.status !== 'Scheduled') return false;
+    const start = new Date(t.startTime);
+    const end = new Date(t.endTime);
+    return currentTime >= start && currentTime <= end;
+  });
+
   // KPI Calculations
   const totalTasksToday = todaysTasks.length;
   const activeBookingsToday = todaysBookings.filter(b => b.approvalStatus === 'Approved').length;
@@ -388,7 +396,7 @@ export const Dashboard: React.FC<{ setActivePage: (page: string) => void }> = ({
         </div>
 
         {/* In-Progress Tasks Slider / Carousel */}
-        {todaysTasks.filter(t => t.status === 'Scheduled').length > 0 ? (
+        {inProgressTasks.length > 0 ? (
           <div 
             ref={sliderRef}
             onMouseDown={handleSliderMouseDown}
@@ -398,9 +406,7 @@ export const Dashboard: React.FC<{ setActivePage: (page: string) => void }> = ({
             className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none pb-1 select-none active:cursor-grabbing"
             style={{ cursor: 'grab' }}
           >
-            {todaysTasks
-              .filter(t => t.status === 'Scheduled')
-              .map(task => {
+            {inProgressTasks.map(task => {
                 const booking = bookings.find(b => b.taskId === task.id);
                 const room = rooms.find(r => r.id === booking?.roomId);
                 const formattedTime = `${new Date(task.startTime).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} - ${new Date(task.endTime).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}`;
@@ -415,7 +421,7 @@ export const Dashboard: React.FC<{ setActivePage: (page: string) => void }> = ({
                       }
                       handleEventClick(task.id);
                     }}
-                    className={`flex-shrink-0 ${todaysTasks.filter(t => t.status === 'Scheduled').length === 1 ? 'w-full' : 'w-[92%] sm:w-[85%] md:w-[450px]'} snap-center bg-gradient-to-r from-enterprise-500/95 to-indigo-600/95 dark:from-enterprise-600/90 dark:to-indigo-700/90 backdrop-blur-md border border-white/10 p-5 text-white flex items-center justify-between shadow-[0_8px_30px_rgba(99,102,241,0.12)] cursor-pointer hover:scale-[1.01] active:scale-95 transition-all duration-200 rounded-2xl`}
+                    className={`flex-shrink-0 ${inProgressTasks.length === 1 ? 'w-full' : 'w-[92%] sm:w-[85%] md:w-[450px]'} snap-center bg-gradient-to-r from-enterprise-500/95 to-indigo-600/95 dark:from-enterprise-600/90 dark:to-indigo-700/90 backdrop-blur-md border border-white/10 p-5 text-white flex items-center justify-between shadow-[0_8px_30px_rgba(99,102,241,0.12)] cursor-pointer hover:scale-[1.01] active:scale-95 transition-all duration-200 rounded-2xl`}
                   >
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                       <div className="h-12 w-12 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center text-white flex-shrink-0">
