@@ -36,7 +36,7 @@
 }
 
 .dark .glass {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(29, 40, 60, 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -56,7 +56,7 @@
 
 .dark .fc {
   --fc-border-color: rgba(51, 65, 85, 0.5);
-  --fc-page-bg-color: #0f172a;
+  --fc-page-bg-color: #1d283c;
 }
 
 .fc-theme-standard th {
@@ -86,7 +86,7 @@
   color: var(--swal-color, #1e293b) !important;
 }
 .dark .swal2-popup {
-  --swal-bg: #1e293b !important;
+  --swal-bg: #1d283c !important;
   --swal-color: #f8fafc !important;
 }
 .swal2-title {
