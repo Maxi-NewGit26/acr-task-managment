@@ -25,6 +25,7 @@ import {
 import { auth, db, googleProvider, getFirebaseMessaging, storage } from '../firebase';
 import { getToken } from 'firebase/messaging';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getLocalYYYYMMDD, getLocalYYYYMMDDTHHMM } from '../utils/dateUtils';
 
 // --- Type Definitions ---
 
@@ -311,11 +312,11 @@ const MOCK_ROOMS: MeetingRoom[] = [
   { id: 'room-5', name: 'ห้องประชุมนานาชาติ', capacity: 120, building: 'หอประชุมใหญ่', floor: '1', amenities: ['Projector', 'Video Conference', 'Microphone', 'Live Streaming', 'Sound System', 'VIP Lounge'], isVip: true, status: 'Available' },
 ];
 
-const baseDate = new Date().toISOString().slice(0, 10);
+const baseDate = getLocalYYYYMMDD();
 const nextDay = (() => {
   const d = new Date(baseDate);
   d.setDate(d.getDate() + 1);
-  return d.toISOString().slice(0, 10);
+  return getLocalYYYYMMDD(d);
 })();
 
 const initialTasks: Task[] = [
@@ -976,8 +977,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         testEnd.setHours(testEnd.getHours() + offset.hours);
       }
 
-      const isoStart = testStart.toISOString().slice(0, 16);
-      const isoEnd = testEnd.toISOString().slice(0, 16);
+      const isoStart = getLocalYYYYMMDDTHHMM(testStart);
+      const isoEnd = getLocalYYYYMMDDTHHMM(testEnd);
 
       // Verify executive is free
       const hasExecConflict = tasks.some(t => {

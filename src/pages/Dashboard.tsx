@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { hasPermission, canEditTask, canCancelTask } from '../rbac';
+import { getLocalYYYYMMDD } from '../utils/dateUtils';
 
 export const Dashboard: React.FC<{ setActivePage: (page: string) => void }> = ({ setActivePage }) => {
   const { 
@@ -238,7 +239,7 @@ export const Dashboard: React.FC<{ setActivePage: (page: string) => void }> = ({
     });
   };
   // Constants
-  const baseDate = new Date().toISOString().slice(0, 10);
+  const baseDate = getLocalYYYYMMDD();
   const hours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 
   const topExec = executives.find(e => e.priority === 0);

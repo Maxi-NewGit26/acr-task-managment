@@ -17,6 +17,7 @@ import {
 } from 'recharts';
 import { Download, FileSpreadsheet, FileText, CheckCircle2, TrendingUp, HelpCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { getLocalYYYYMMDD } from '../utils/dateUtils';
 
 export const Reports: React.FC = () => {
   const { tasks, bookings, rooms, executives } = useApp();
@@ -108,7 +109,7 @@ export const Reports: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `Task_Facility_Report_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `Task_Facility_Report_${getLocalYYYYMMDD()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

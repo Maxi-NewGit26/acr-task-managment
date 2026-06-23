@@ -10,6 +10,7 @@ import Swal from 'sweetalert2';
 import { hasPermission, canEditTask, canCancelTask } from '../rbac';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { getLocalYYYYMMDD } from '../utils/dateUtils';
 
 export const CalendarView: React.FC<{ setActivePage: (page: string) => void }> = ({ setActivePage }) => {
   const { 
@@ -138,7 +139,7 @@ export const CalendarView: React.FC<{ setActivePage: (page: string) => void }> =
   const previewRef = useRef<HTMLDivElement>(null);
   
   // Date focused state - default to current local date
-  const [focusedDate, setFocusedDate] = useState(new Date().toISOString().slice(0, 10));
+  const [focusedDate, setFocusedDate] = useState(getLocalYYYYMMDD());
 
   // Responsive mobile state
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);

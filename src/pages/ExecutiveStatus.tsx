@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { hasPermission } from '../rbac';
+import { getLocalYYYYMMDD } from '../utils/dateUtils';
 
 export const ExecutiveStatus: React.FC = () => {
   const { 
@@ -44,8 +45,8 @@ export const ExecutiveStatus: React.FC = () => {
     status: 'อยู่ปฏิบัติราชการ',
     details: '',
     location: '',
-    startDate: new Date().toISOString().slice(0, 10),
-    endDate: new Date().toISOString().slice(0, 10),
+    startDate: getLocalYYYYMMDD(),
+    endDate: getLocalYYYYMMDD(),
     note: '',
     actingExecutiveId: ''
   });
@@ -58,7 +59,7 @@ export const ExecutiveStatus: React.FC = () => {
   });
 
   const isWriteAuthorized = hasPermission(currentUser.role, 'exec_status:write');
-  const baseDate = new Date().toISOString().slice(0, 10);
+  const baseDate = getLocalYYYYMMDD();
 
   const statusOptions = [
     'อยู่ปฏิบัติราชการ',
@@ -125,8 +126,8 @@ export const ExecutiveStatus: React.FC = () => {
         status: 'อยู่ปฏิบัติราชการ',
         details: '',
         location: '',
-        startDate: new Date().toISOString().slice(0, 10),
-        endDate: new Date().toISOString().slice(0, 10),
+        startDate: getLocalYYYYMMDD(),
+        endDate: getLocalYYYYMMDD(),
         note: '',
         actingExecutiveId: ''
       });
@@ -291,8 +292,8 @@ export const ExecutiveStatus: React.FC = () => {
                     status: 'อยู่ปฏิบัติราชการ',
                     details: '',
                     location: '',
-                    startDate: new Date().toISOString().slice(0, 10),
-                    endDate: new Date().toISOString().slice(0, 10),
+                    startDate: getLocalYYYYMMDD(),
+                    endDate: getLocalYYYYMMDD(),
                     note: '',
                     actingExecutiveId: ''
                   });

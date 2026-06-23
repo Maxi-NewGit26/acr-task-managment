@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp, MeetingRoom, Task, RoomBooking } from '../context/AppContext';
 import { Tv, Clock, Calendar, Shield, MapPin, EyeOff, CheckCircle, ChevronLeft, Maximize, Minimize } from 'lucide-react';
+import { getLocalYYYYMMDD } from '../utils/dateUtils';
 
 export const DigitalSignage: React.FC = () => {
   const { rooms, bookings, tasks } = useApp();
@@ -39,7 +40,7 @@ export const DigitalSignage: React.FC = () => {
 
   // Compute meetings for selected room today
   // Date target: today
-  const targetDateStr = new Date().toISOString().slice(0, 10);
+  const targetDateStr = getLocalYYYYMMDD();
 
   const roomBookingsToday = bookings
     .filter(b => b.roomId === selectedRoomId && b.startTime.startsWith(targetDateStr) && b.approvalStatus === 'Approved')
