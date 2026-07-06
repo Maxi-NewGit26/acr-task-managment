@@ -12,7 +12,8 @@ import {
   Sliders,
   X,
   Activity,
-  LogOut
+  LogOut,
+  Building2
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 
@@ -34,6 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isO
     { name: 'Dashboard', icon: <LayoutDashboard className="h-5 w-5" />, label: 'แดชบอร์ด' },
     { name: 'Calendar', icon: <Calendar className="h-5 w-5" />, label: 'ปฏิทินภารกิจ' },
     { name: 'Book a Room', icon: <PlusCircle className="h-5 w-5" />, label: 'ลงภารกิจ / จองห้อง' },
+    { name: 'Meeting Rooms', icon: <Building2 className="h-5 w-5" />, label: 'ห้องประชุม' },
     { 
       name: 'Approval Center', 
       icon: <CheckSquare className="h-5 w-5" />, 
@@ -51,6 +53,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isO
       'Dashboard': 'menu:dashboard',
       'Calendar': 'menu:calendar', 
       'Book a Room': 'menu:book_room',
+      'Meeting Rooms': 'menu:rooms',
       'Approval Center': 'menu:approval_center',
       'Reports': 'menu:reports',
       'Digital Signage': 'menu:digital_signage',

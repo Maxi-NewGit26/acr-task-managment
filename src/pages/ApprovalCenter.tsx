@@ -10,10 +10,15 @@ import {
   ShieldCheck, 
   User, 
   Award,
-  BookOpen
+  BookOpen,
+  CheckCircle,
+  AlertTriangle,
+  Building2,
+  Crown
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { hasPermission } from '../rbac';
+import { getLocalYYYYMMDD } from '../utils/dateUtils';
 
 export const ApprovalCenter: React.FC = () => {
   const { 
@@ -36,9 +41,36 @@ export const ApprovalCenter: React.FC = () => {
   // Can the current user perform approval actions?
   const canApprove = hasPermission(currentUser.role, 'booking:approve_vip');
 
+  const baseDate = getLocalYYYYMMDD();
+  const currentTime = new Date();
+
+  // 1. ห้องประชุมที่จอง (Approved bookings today)
+  const approvedBookingsTodayCount = bookings.filter(
+    b => b.startTime.startsWith(baseDate) && b.approvalStatus === 'Approved'
+  ).length;
+
+  // 2. ห้อง VIP รออนุมัติ (Pending VIP bookings)
+  const pendingVipApprovalsCount = bookings.filter(b => {
+    const room = rooms.find(r => r.id === b.roomId);
+    return room?.isVip && b.approvalStatus === 'Pending';
+  }).length;
+
+  // 3. ห้องกำลังใช้งาน (Currently occupied rooms right now)
+  const occupiedRoomIds = new Set(
+    bookings.filter(b => {
+      if (b.approvalStatus !== 'Approved') return false;
+      const start = new Date(b.startTime);
+      const end = new Date(b.endTime);
+      return currentTime >= start && currentTime <= end;
+    }).map(b => b.roomId)
+  );
+  const occupiedRoomsCount = occupiedRoomIds.size;
+
+  // 4. ห้องว่าง (Available rooms right now)
+  const availableRoomsCount = Math.max(0, rooms.length - occupiedRoomsCount);
+
   // Filtered list
   const filteredBookings = bookings.filter(b => {
-    // Only care about VIP rooms or larger requests requiring approval (in this system, room.isVip determines if it needs approval)
     const room = rooms.find(r => r.id === b.roomId);
     if (!room?.isVip) return false;
 
@@ -98,16 +130,69 @@ export const ApprovalCenter: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-6 animate-in fade-in duration-200 text-left">
       
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-200/60 dark:border-slate-800 gap-3">
         <div>
-          <h2 className="text-base font-bold text-slate-800 dark:text-white">ศูนย์พิจารณาอนุมัติห้องประชุม VIP</h2>
+          <h2 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+            <Crown className="h-5 w-5 text-amber-500" />
+            <span>ศูนย์พิจารณาอนุมัติห้องประชุม VIP</span>
+          </h2>
           <p className="text-xs text-slate-400 dark:text-slate-500">จัดการคำขอกลั่นกรองสิทธิ์ใช้งานห้องพิเศษและห้องรับรองระดับสูง</p>
         </div>
+      </div>
 
-        {/* Status Tab buttons */}
+      {/* 4 Summary KPI Cards */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+        {/* Card 1: ห้องประชุมที่จอง */}
+        <div className="relative overflow-hidden flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-[#e8f1fc] dark:bg-[#1a2d42]/45 border border-[#c1d6ec]/50 dark:border-[#1c354e]/30 shadow-sm">
+          <div className="relative z-10 text-left">
+            <div className="text-[10px] sm:text-xs font-bold text-[#39668f] dark:text-[#a3c2e1] uppercase tracking-wider">ห้องประชุมที่จอง</div>
+            <div className="text-base sm:text-2xl font-bold text-[#1c354e] dark:text-white mt-1">{approvedBookingsTodayCount} รายการ</div>
+          </div>
+          <div className="relative z-10 rounded-xl bg-white/60 dark:bg-slate-800/60 p-2 sm:p-3 text-[#39668f] dark:text-[#a3c2e1] shadow-sm">
+            <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+          </div>
+        </div>
+
+        {/* Card 2: ห้อง VIP รออนุมัติ */}
+        <div className="relative overflow-hidden flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-[#fef7e0] dark:bg-[#3d331a]/45 border border-[#feefc3]/50 dark:border-[#3a3018]/30 shadow-sm">
+          <div className="relative z-10 text-left">
+            <div className="text-[10px] sm:text-xs font-bold text-[#b06000] dark:text-[#ffd54f] uppercase tracking-wider">ห้อง VIP รออนุมัติ</div>
+            <div className="text-base sm:text-2xl font-bold text-[#7c4300] dark:text-white mt-1">{pendingVipApprovalsCount} รายการ</div>
+          </div>
+          <div className="relative z-10 rounded-xl bg-white/60 dark:bg-slate-800/60 p-2 sm:p-3 text-[#b06000] dark:text-[#ffd54f] shadow-sm">
+            <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5" />
+          </div>
+        </div>
+
+        {/* Card 3: ห้องกำลังใช้งาน */}
+        <div className="relative overflow-hidden flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-[#f3e8fd] dark:bg-[#2d1b4b]/45 border border-[#e9d2fd]/50 dark:border-[#2b1947]/30 shadow-sm">
+          <div className="relative z-10 text-left">
+            <div className="text-[10px] sm:text-xs font-bold text-[#6200ee] dark:text-[#b388ff] uppercase tracking-wider">ห้องกำลังใช้งาน</div>
+            <div className="text-base sm:text-2xl font-bold text-[#4a00b0] dark:text-white mt-1">{occupiedRoomsCount} ห้อง</div>
+          </div>
+          <div className="relative z-10 rounded-xl bg-white/60 dark:bg-slate-800/60 p-2 sm:p-3 text-[#6200ee] dark:text-[#b388ff] shadow-sm">
+            <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
+          </div>
+        </div>
+
+        {/* Card 4: ห้องว่าง */}
+        <div className="relative overflow-hidden flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-[#e6f4ea] dark:bg-[#1a3825]/45 border border-[#c2e7cc]/50 dark:border-[#1e3d29]/30 shadow-sm">
+          <div className="relative z-10 text-left">
+            <div className="text-[10px] sm:text-xs font-bold text-[#137333] dark:text-[#81c784] uppercase tracking-wider">ห้องว่าง</div>
+            <div className="text-base sm:text-2xl font-bold text-[#0f5224] dark:text-white mt-1">{availableRoomsCount} ห้อง</div>
+          </div>
+          <div className="relative z-10 rounded-xl bg-white/60 dark:bg-slate-800/60 p-2 sm:p-3 text-[#137333] dark:text-[#81c784] shadow-sm">
+            <Building2 className="h-4 w-4 sm:h-5 sm:w-5" />
+          </div>
+        </div>
+      </div>
+
+      {/* Filter Tabs Bar */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">รายการคำขออนุมัติ</h3>
         <div className="flex bg-slate-100 dark:bg-slate-950/40 p-1 rounded-xl border border-slate-200/50 dark:border-slate-800/80">
           {(['Pending', 'Approved', 'Rejected', 'All'] as const).map(tab => (
             <button

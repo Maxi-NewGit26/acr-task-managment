@@ -77,8 +77,12 @@ export const AdminSettings: React.FC = () => {
     building: 'อาคารอำนวยการ',
     floor: '1',
     isVip: false,
-    amenitiesInput: 'Projector, Microphone, Coffee Break'
+    amenitiesInput: 'Projector, Microphone, Coffee Break',
+    images: [] as string[],
+    coverImage: ''
   });
+  const [uploadingRoomPhoto, setUploadingRoomPhoto] = useState(false);
+  const [roomImageUrlInput, setRoomImageUrlInput] = useState('');
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [userForm, setUserForm] = useState({
@@ -257,6 +261,71 @@ export const AdminSettings: React.FC = () => {
 
   const isAdmin = ['Super Admin', 'Admin'].includes(currentUser.role);
 
+  const handleUploadRoomImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingRoomPhoto(true);
+    try {
+      const newUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileRef = ref(storage, `rooms/${Date.now()}_${file.name}`);
+        await uploadBytes(fileRef, file);
+        const url = await getDownloadURL(fileRef);
+        newUrls.push(url);
+      }
+
+      setRoomForm(prev => {
+        const updated = [...prev.images, ...newUrls];
+        return {
+          ...prev,
+          images: updated,
+          coverImage: prev.coverImage || updated[0] || ''
+        };
+      });
+      Swal.fire('สำเร็จ', 'อัปโหลดรูปภาพห้องประชุมสำเร็จ', 'success');
+    } catch (err: any) {
+      console.error("Room photo upload error:", err);
+      Swal.fire('ข้อผิดพลาด', `อัปโหลดรูปภาพล้มเหลว: ${err.message}`, 'error');
+    } finally {
+      setUploadingRoomPhoto(false);
+    }
+  };
+
+  const handleAddRoomImageUrl = () => {
+    if (!roomImageUrlInput.trim()) return;
+    const url = roomImageUrlInput.trim();
+    setRoomForm(prev => {
+      const updated = [...prev.images, url];
+      return {
+        ...prev,
+        images: updated,
+        coverImage: prev.coverImage || url
+      };
+    });
+    setRoomImageUrlInput('');
+  };
+
+  const handleRemoveRoomImage = (imgUrl: string) => {
+    setRoomForm(prev => {
+      const updated = prev.images.filter(img => img !== imgUrl);
+      const newCover = prev.coverImage === imgUrl ? (updated[0] || '') : prev.coverImage;
+      return {
+        ...prev,
+        images: updated,
+        coverImage: newCover
+      };
+    });
+  };
+
+  const handleSetCoverImage = (imgUrl: string) => {
+    setRoomForm(prev => ({
+      ...prev,
+      coverImage: imgUrl
+    }));
+  };
+
   // --- ROOMS CRUD ---
   const handleOpenRoomModal = (room?: MeetingRoom) => {
     if (room) {
@@ -267,7 +336,9 @@ export const AdminSettings: React.FC = () => {
         building: room.building,
         floor: room.floor,
         isVip: room.isVip,
-        amenitiesInput: room.amenities.join(', ')
+        amenitiesInput: room.amenities.join(', '),
+        images: room.images || [],
+        coverImage: room.coverImage || (room.images && room.images[0]) || ''
       });
     } else {
       setEditingRoomId(null);
@@ -277,7 +348,9 @@ export const AdminSettings: React.FC = () => {
         building: 'อาคารอำนวยการ',
         floor: '1',
         isVip: false,
-        amenitiesInput: 'Projector, Microphone, Coffee Break'
+        amenitiesInput: 'Projector, Microphone, Coffee Break',
+        images: [],
+        coverImage: ''
       });
     }
     setShowRoomModal(true);
@@ -1506,6 +1579,86 @@ export const AdminSettings: React.FC = () => {
                   onChange={e => setRoomForm({...roomForm, amenitiesInput: e.target.value})}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-800 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
                 />
+              </div>
+
+              {/* Room Multi-Photo Upload & Cover Image Selection */}
+              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">รูปภาพห้องประชุมและภาพตัวอย่าง</label>
+                  <span className="text-[10px] text-slate-400 font-semibold">{roomForm.images.length} รูป</span>
+                </div>
+
+                <div className="flex gap-2">
+                  <label className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-850 cursor-pointer transition-all">
+                    {uploadingRoomPhoto ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-enterprise-500" />
+                    ) : (
+                      <Camera className="h-4 w-4 text-enterprise-500" />
+                    )}
+                    <span>{uploadingRoomPhoto ? 'กำลังอัปโหลด...' : 'อัปโหลดรูปภาพ (เลือกได้หลายไฟล์)'}</span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      disabled={uploadingRoomPhoto}
+                      onChange={handleUploadRoomImages}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="หรือระบุ URL รูปภาพ (https://...)"
+                    value={roomImageUrlInput}
+                    onChange={e => setRoomImageUrlInput(e.target.value)}
+                    className="flex-1 rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-1.5 text-xs text-slate-800 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddRoomImageUrl}
+                    className="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 cursor-pointer"
+                  >
+                    เพิ่ม URL
+                  </button>
+                </div>
+
+                {/* Thumbnail Previews with Cover Photo Star Badge */}
+                {roomForm.images.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2.5 pt-2 max-h-48 overflow-y-auto">
+                    {roomForm.images.map((imgUrl, idx) => {
+                      const isCover = roomForm.coverImage === imgUrl;
+                      return (
+                        <div key={idx} className={`relative h-20 rounded-xl overflow-hidden border-2 transition-all ${isCover ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-slate-200 dark:border-slate-800'}`}>
+                          <img src={imgUrl} alt="" className="h-full w-full object-cover" />
+                          
+                          <button
+                            type="button"
+                            onClick={() => handleSetCoverImage(imgUrl)}
+                            title={isCover ? 'รูปภาพหลักปัจจุบัน' : 'คลิกเพื่อตั้งเป็นรูปภาพหลัก/ตัวอย่าง'}
+                            className={`absolute top-1 left-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold flex items-center gap-0.5 cursor-pointer backdrop-blur-md transition-all ${
+                              isCover 
+                                ? 'bg-amber-500 text-white shadow-sm' 
+                                : 'bg-black/60 text-slate-200 hover:bg-amber-500 hover:text-white'
+                            }`}
+                          >
+                            <span>{isCover ? '★ รูปหลัก' : 'ตั้งเป็นรูปหลัก'}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveRoomImage(imgUrl)}
+                            title="ลบรูปภาพนี้"
+                            className="absolute top-1 right-1 h-5 w-5 rounded-full bg-rose-600/80 text-white flex items-center justify-center hover:bg-rose-600 transition-all cursor-pointer"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center pt-2">

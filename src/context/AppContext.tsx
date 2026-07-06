@@ -109,6 +109,9 @@ export interface MeetingRoom {
   amenities: string[];
   isVip: boolean;
   status: 'Available' | 'Maintenance' | 'OutOfService';
+  images?: string[];
+  coverImage?: string;
+  description?: string;
 }
 
 export interface Task {
@@ -249,6 +252,7 @@ interface AppContextType {
   // Notifications
   markNotificationRead: (notifId: string) => Promise<void>;
   markAllNotificationsRead: () => Promise<void>;
+  clearAllNotifications: () => Promise<void>;
 
   // Editing Task state
   editingTaskId: string | null;
@@ -1197,8 +1201,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const currentTask = tasks.find(t => t.id === taskId);
     if (!currentTask) return { success: false, error: 'ไม่พบภารกิจที่ต้องการแก้ไข' };
 
-    if (!currentUser || !canEditTask(currentUser.role, currentTask.createdBy, currentUser.id)) {
-      return { success: false, error: 'คุณไม่มีสิทธิ์แก้ไขภารกิจนี้ เฉพาะผู้สร้างหรือผู้ดูแลระบบเท่านั้น' };
+    if (!currentUser || !canEditTask(currentUser.role, currentTask.createdBy, currentUser.id, currentTask.status)) {
+      return { 
+        success: false, 
+        error: currentTask.status === 'Completed' 
+          ? 'ภารกิจที่เสร็จสิ้นแล้ว เฉพาะ Super Admin เท่านั้นที่สามารถแก้ไขได้' 
+          : 'คุณไม่มีสิทธิ์แก้ไขภารกิจนี้ เฉพาะผู้สร้างหรือผู้ดูแลระบบเท่านั้น' 
+      };
     }
 
     const checkStart = updatedTask.startTime || currentTask.startTime;
@@ -2309,6 +2318,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const clearAllNotifications = async () => {
+    try {
+      const batch = writeBatch(db);
+      notifications.forEach(n => {
+        batch.delete(doc(db, 'notifications', n.id));
+      });
+      await batch.commit();
+    } catch (err) {
+      console.error("Failed to clear all notifications in Firestore:", err);
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -2343,6 +2364,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         maskTaskDesc,
         markNotificationRead,
         markAllNotificationsRead,
+        clearAllNotifications,
         editingTaskId,
         setEditingTaskId,
         hasPermission: (permission: string) => currentUser ? hasPermission(currentUser.role, permission as any) : false,

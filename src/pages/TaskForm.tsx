@@ -719,7 +719,7 @@ export const TaskForm: React.FC<{ setActivePage: (page: string) => void }> = ({ 
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
                 <MapPin className="h-4 w-4 text-enterprise-500" />
-                <span>การจัดสรรทรัพยากรห้องประชุม</span>
+                <span>การจัดสรรทรัพยากร</span>
               </h3>
               
               {/* Checkbox toggle */}

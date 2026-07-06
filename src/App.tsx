@@ -11,6 +11,7 @@ import { Reports } from './pages/Reports';
 import { DigitalSignage } from './pages/DigitalSignage';
 import { AdminSettings } from './pages/AdminSettings';
 import { ExecutiveStatus } from './pages/ExecutiveStatus';
+import { MeetingRooms } from './pages/MeetingRooms';
 import { LayoutDashboard, Calendar, PlusCircle, CheckSquare, Menu } from 'lucide-react';
 import { hasPermission } from './rbac';
 
@@ -45,6 +46,7 @@ function AppContent() {
       'Dashboard': 'menu:dashboard',
       'Calendar': 'menu:calendar',
       'Book a Room': 'menu:book_room',
+      'Meeting Rooms': 'menu:rooms',
       'Approval Center': 'menu:approval_center',
       'Reports': 'menu:reports',
       'Executive Status': 'menu:exec_status',
@@ -62,6 +64,8 @@ function AppContent() {
         return <CalendarView setActivePage={setActivePage} />;
       case 'Book a Room':
         return <TaskForm setActivePage={setActivePage} />;
+      case 'Meeting Rooms':
+        return <MeetingRooms setActivePage={setActivePage} />;
       case 'Approval Center':
         return <ApprovalCenter />;
       case 'Reports':
@@ -83,6 +87,8 @@ function AppContent() {
         return 'ปฏิทินตารางภารกิจ';
       case 'Book a Room':
         return 'ลงภารกิจและจองห้องประชุม';
+      case 'Meeting Rooms':
+        return 'รายการห้องประชุมและสถานที่';
       case 'Approval Center':
         return 'ศูนย์พิจารณาอนุมัติห้อง VIP';
       case 'Reports':

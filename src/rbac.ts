@@ -39,6 +39,7 @@ export type Permission =
   | 'menu:digital_signage'
   | 'menu:admin_settings'
   | 'menu:exec_status'
+  | 'menu:rooms'
   | 'exec_status:write';
 
 // ---------------------------------------------------------------------------
@@ -53,7 +54,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Set<Permission>> = {
     'assignment:view_own', 'assignment:view_all', 'assignment:update_own',
     'admin:manage_rooms', 'admin:manage_execs', 'admin:manage_users', 'admin:view_logs',
     'menu:dashboard', 'menu:calendar', 'menu:book_room', 'menu:approval_center',
-    'menu:reports', 'menu:digital_signage', 'menu:admin_settings', 'menu:exec_status', 'exec_status:write',
+    'menu:reports', 'menu:digital_signage', 'menu:admin_settings', 'menu:exec_status', 'menu:rooms', 'exec_status:write',
   ]),
 
   'Admin': new Set<Permission>([
@@ -63,7 +64,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Set<Permission>> = {
     'assignment:view_own', 'assignment:view_all', 'assignment:update_own',
     'admin:manage_rooms', 'admin:view_logs',
     'menu:dashboard', 'menu:calendar', 'menu:book_room', 'menu:approval_center',
-    'menu:reports', 'menu:digital_signage', 'menu:admin_settings', 'menu:exec_status', 'exec_status:write',
+    'menu:reports', 'menu:digital_signage', 'menu:admin_settings', 'menu:exec_status', 'menu:rooms', 'exec_status:write',
   ]),
 
   'Secretary': new Set<Permission>([
@@ -73,7 +74,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Set<Permission>> = {
     'assignment:view_own', 'assignment:view_all',
     'admin:view_logs',
     'menu:dashboard', 'menu:calendar', 'menu:book_room', 'menu:approval_center',
-    'menu:reports', 'menu:digital_signage', 'menu:exec_status', 'exec_status:write',
+    'menu:reports', 'menu:digital_signage', 'menu:exec_status', 'menu:rooms', 'exec_status:write',
   ]),
 
   'Executive': new Set<Permission>([
@@ -82,31 +83,31 @@ const ROLE_PERMISSIONS: Record<UserRole, Set<Permission>> = {
     'booking:approve_vip', 'booking:view_all',
     'assignment:view_own',
     'menu:dashboard', 'menu:calendar', 'menu:book_room', 'menu:approval_center',
-    'menu:reports', 'menu:digital_signage', 'menu:exec_status',
+    'menu:reports', 'menu:digital_signage', 'menu:exec_status', 'menu:rooms',
   ]),
 
   'Facility Officer': new Set<Permission>([
     'task:view_public', 'task:view_assigned',
     'assignment:view_own', 'assignment:update_own',
-    'menu:dashboard', 'menu:calendar', 'menu:digital_signage', 'menu:exec_status',
+    'menu:dashboard', 'menu:calendar', 'menu:digital_signage', 'menu:exec_status', 'menu:rooms',
   ]),
 
   'IT Support': new Set<Permission>([
     'task:view_public', 'task:view_assigned',
     'assignment:view_own', 'assignment:update_own',
-    'menu:dashboard', 'menu:calendar', 'menu:approval_center', 'menu:digital_signage', 'menu:exec_status',
+    'menu:dashboard', 'menu:calendar', 'menu:approval_center', 'menu:digital_signage', 'menu:exec_status', 'menu:rooms',
   ]),
 
   'Housekeeping': new Set<Permission>([
     'task:view_public', 'task:view_assigned',
     'assignment:view_own', 'assignment:update_own',
-    'menu:dashboard', 'menu:calendar', 'menu:digital_signage', 'menu:exec_status',
+    'menu:dashboard', 'menu:calendar', 'menu:digital_signage', 'menu:exec_status', 'menu:rooms',
   ]),
 
   'General User': new Set<Permission>([
     'task:view_public',
     'task:create', 'task:edit_own', 'task:cancel_own',
-    'menu:dashboard', 'menu:calendar', 'menu:book_room', 'menu:digital_signage', 'menu:exec_status',
+    'menu:dashboard', 'menu:calendar', 'menu:book_room', 'menu:digital_signage', 'menu:exec_status', 'menu:rooms',
   ]),
 };
 
@@ -138,10 +139,11 @@ export const ALL_MENU_ITEMS: MenuDef[] = [
   { name: 'Dashboard',        permission: 'menu:dashboard' },
   { name: 'Calendar',         permission: 'menu:calendar' },
   { name: 'Book a Room',      permission: 'menu:book_room' },
+  { name: 'Meeting Rooms',    permission: 'menu:rooms' },
   { name: 'Approval Center',  permission: 'menu:approval_center' },
   { name: 'Reports',          permission: 'menu:reports' },
   { name: 'Digital Signage',  permission: 'menu:digital_signage' },
-  { name: 'Executive Status',  permission: 'menu:exec_status' },
+  { name: 'Executive Status', permission: 'menu:exec_status' },
   { name: 'Admin Settings',   permission: 'menu:admin_settings' },
 ];
 
@@ -156,12 +158,16 @@ export function getVisibleMenuNames(role: UserRole): string[] {
 // Dynamic (context-aware) authorization helpers
 // ---------------------------------------------------------------------------
 
-/** Can the current user edit this task? */
+/** Can the current user edit this task? Completed tasks require Super Admin. */
 export function canEditTask(
   role: UserRole,
   taskCreatedBy: string,
   currentUserId: string,
+  taskStatus?: string
 ): boolean {
+  if (taskStatus === 'Completed') {
+    return role === 'Super Admin';
+  }
   if (hasPermission(role, 'task:edit_all')) return true;
   if (hasPermission(role, 'task:edit_own') && taskCreatedBy === currentUserId) return true;
   return false;

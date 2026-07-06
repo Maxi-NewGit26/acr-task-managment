@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp, UserRole, User } from '../context/AppContext';
 import { 
   Bell, 
@@ -36,6 +36,7 @@ export const Header: React.FC<HeaderProps> = ({ activePage, onMenuToggle }) => {
     notifications, 
     markNotificationRead, 
     markAllNotificationsRead, 
+    clearAllNotifications,
     theme, 
     toggleTheme, 
     setCurrentUserByRole,
@@ -48,6 +49,22 @@ export const Header: React.FC<HeaderProps> = ({ activePage, onMenuToggle }) => {
   
   const [showNotifications, setShowNotifications] = useState(false);
   const [showRoleSelector, setShowRoleSelector] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  // Click outside listener for notification dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+    if (showNotifications) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotifications]);
 
   // Profile Modal States
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -443,7 +460,7 @@ export const Header: React.FC<HeaderProps> = ({ activePage, onMenuToggle }) => {
           </button>
 
           {/* Notifications Dropdown */}
-          <div className="relative">
+          <div ref={notifRef} className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
               className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 transition-all cursor-pointer border border-slate-200/50 dark:border-slate-800/50"
@@ -458,14 +475,24 @@ export const Header: React.FC<HeaderProps> = ({ activePage, onMenuToggle }) => {
               <div className="absolute right-0 mt-2 w-72 sm:w-80 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-800 dark:bg-slate-900 z-50">
                 <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 dark:border-slate-800">
                   <span className="text-[10px] sm:text-xs font-bold text-slate-800 dark:text-white">แจ้งเตือนล่าสุด ({unreadCount} ใหม่)</span>
-                  {unreadCount > 0 && (
-                    <button
-                      onClick={markAllNotificationsRead}
-                      className="text-[9px] sm:text-[10px] font-semibold text-enterprise-500 hover:underline cursor-pointer"
-                    >
-                      อ่านทั้งหมด
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllNotificationsRead}
+                        className="text-[9px] sm:text-[10px] font-semibold text-enterprise-500 hover:underline cursor-pointer"
+                      >
+                        อ่านทั้งหมด
+                      </button>
+                    )}
+                    {notifications.length > 0 && (
+                      <button
+                        onClick={clearAllNotifications}
+                        className="text-[9px] sm:text-[10px] font-semibold text-rose-500 hover:underline cursor-pointer"
+                      >
+                        ล้างทั้งหมด
+                      </button>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="mt-1 max-h-72 overflow-y-auto">

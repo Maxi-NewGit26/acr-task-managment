@@ -5,7 +5,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
-import { Printer, ShieldAlert, MapPin, Clock, Users, Plus, Calendar, Paperclip } from 'lucide-react';
+import { Printer, ShieldAlert, MapPin, Clock, Users, Plus, Calendar, Paperclip, Filter, RotateCcw } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { hasPermission, canEditTask, canCancelTask } from '../rbac';
 import html2canvas from 'html2canvas';
@@ -152,9 +152,23 @@ export const CalendarView: React.FC<{ setActivePage: (page: string) => void }> =
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Filter States
+  const [selectedExecFilter, setSelectedExecFilter] = useState<string>('all');
+  const [selectedRoomFilter, setSelectedRoomFilter] = useState<string>('all');
+
+  // Filter tasks based on selected Executive and Room
+  const filteredCalendarTasks = visibleTasks.filter(t => {
+    if (t.status === 'Cancelled') return false;
+    if (selectedExecFilter !== 'all' && t.executiveId !== selectedExecFilter) return false;
+    if (selectedRoomFilter !== 'all') {
+      const booking = bookings.find(b => b.taskId === t.id);
+      if (booking?.roomId !== selectedRoomFilter) return false;
+    }
+    return true;
+  });
+
   // Transform Tasks into FullCalendar Events
-  const calendarEvents = visibleTasks
-    .filter(t => t.status !== 'Cancelled')
+  const calendarEvents = filteredCalendarTasks
     .map(task => {
       const exec = executives.find(e => e.id === task.executiveId);
       const booking = bookings.find(b => b.taskId === task.id);
@@ -383,8 +397,8 @@ export const CalendarView: React.FC<{ setActivePage: (page: string) => void }> =
   };
 
   // Get tasks for active focused date
-  const focusedDateTasks = visibleTasks
-    .filter(t => t.startTime && t.startTime.startsWith(focusedDate) && t.status !== 'Cancelled')
+  const focusedDateTasks = filteredCalendarTasks
+    .filter(t => t.startTime && t.startTime.startsWith(focusedDate))
     .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
   // Print-oriented task lists
@@ -396,8 +410,8 @@ export const CalendarView: React.FC<{ setActivePage: (page: string) => void }> =
     setPrintDate(focusedDate);
   }, [focusedDate]);
 
-  const printTasks = visibleTasks
-    .filter(t => t.startTime && t.startTime.startsWith(printDate) && t.status !== 'Cancelled')
+  const printTasks = filteredCalendarTasks
+    .filter(t => t.startTime && t.startTime.startsWith(printDate))
     .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
   const renderPrintableDocument = () => {
@@ -539,6 +553,64 @@ export const CalendarView: React.FC<{ setActivePage: (page: string) => void }> =
             <Printer className="h-4 w-4 text-enterprise-500" />
             <span>ดูตัวอย่างและออกรายงาน</span>
           </button>
+        </div>
+      </div>
+
+      {/* Filter Controls Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm text-left">
+        <div className="flex flex-wrap items-center gap-3 text-xs">
+          <span className="font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+            <Filter className="h-3.5 w-3.5 text-enterprise-500" />
+            <span>ตัวกรองปฏิทิน:</span>
+          </span>
+
+          {/* Executive Filter Dropdown */}
+          <div className="flex items-center gap-1.5">
+            <label className="text-[11px] text-slate-400 font-semibold">ผู้บริหาร:</label>
+            <select
+              value={selectedExecFilter}
+              onChange={(e) => setSelectedExecFilter(e.target.value)}
+              className="rounded-xl border border-slate-200 bg-slate-50 dark:bg-slate-950 dark:border-slate-800 px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
+            >
+              <option value="all">ทั้งหมด (ทุกผู้บริหาร)</option>
+              {executives.map(e => (
+                <option key={e.id} value={e.id}>{e.name} ({e.position})</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Room Filter Dropdown */}
+          <div className="flex items-center gap-1.5">
+            <label className="text-[11px] text-slate-400 font-semibold">ห้องประชุม:</label>
+            <select
+              value={selectedRoomFilter}
+              onChange={(e) => setSelectedRoomFilter(e.target.value)}
+              className="rounded-xl border border-slate-200 bg-slate-50 dark:bg-slate-950 dark:border-slate-800 px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
+            >
+              <option value="all">ทั้งหมด (ทุกห้องประชุม)</option>
+              {rooms.map(r => (
+                <option key={r.id} value={r.id}>{r.name} ({r.building})</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Reset Filters Button */}
+          {(selectedExecFilter !== 'all' || selectedRoomFilter !== 'all') && (
+            <button
+              onClick={() => {
+                setSelectedExecFilter('all');
+                setSelectedRoomFilter('all');
+              }}
+              className="text-enterprise-500 hover:text-enterprise-600 font-semibold text-xs flex items-center gap-1 cursor-pointer bg-enterprise-50 dark:bg-enterprise-950/40 px-2.5 py-1.5 rounded-xl transition-all"
+            >
+              <RotateCcw className="h-3 w-3" />
+              <span>ล้างตัวกรอง (แสดงทั้งหมด)</span>
+            </button>
+          )}
+        </div>
+
+        <div className="text-slate-400 text-xs font-semibold">
+          แสดงข้อมูล {filteredCalendarTasks.length} รายการ
         </div>
       </div>
 

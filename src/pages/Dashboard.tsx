@@ -267,7 +267,7 @@ export const Dashboard: React.FC<{ setActivePage: (page: string) => void }> = ({
 
   // Filter active in-progress tasks (inside start & end time window)
   const inProgressTasks = todaysTasks.filter(t => {
-    if (t.status !== 'Scheduled') return false;
+    if (t.status === 'Cancelled' || t.status === 'Completed') return false;
     const start = new Date(t.startTime);
     const end = new Date(t.endTime);
     return currentTime >= start && currentTime <= end;
@@ -275,11 +275,21 @@ export const Dashboard: React.FC<{ setActivePage: (page: string) => void }> = ({
 
   // KPI Calculations
   const totalTasksToday = todaysTasks.length;
-  const activeBookingsToday = todaysBookings.filter(b => b.approvalStatus === 'Approved').length;
-  const pendingApprovalsCount = bookings.filter(b => b.approvalStatus === 'Pending').length;
-  const pendingAssignmentsToday = assignments.filter(
-    a => a.status !== 'Completed' && a.assignedToRole === currentUser.role
-  ).length;
+  const inProgressCount = inProgressTasks.length;
+  const scheduledCount = todaysTasks.filter(t => {
+    if (t.status === 'Cancelled' || t.status === 'Completed') return false;
+    const start = new Date(t.startTime);
+    return currentTime < start;
+  }).length;
+  const completedCount = todaysTasks.filter(t => {
+    if (t.status === 'Cancelled') return false;
+    if (t.status === 'Completed') return true;
+    const end = new Date(t.endTime);
+    return currentTime > end;
+  }).length;
+
+  // All bookings for today for timeline visibility to everyone
+  const allTodaysBookings = bookings.filter(b => b.startTime && b.startTime.startsWith(baseDate) && b.approvalStatus !== 'Rejected');
 
   // Render Priority badge
   const getPriorityBadge = (priority: string) => {
@@ -319,6 +329,16 @@ export const Dashboard: React.FC<{ setActivePage: (page: string) => void }> = ({
   const handleEventClick = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
+
+    if (!canViewTaskDetail(task)) {
+      Swal.fire({
+        title: 'ข้อมูลชั้นความลับ',
+        text: 'คุณสามารถมองเห็นตารางเวลาการใช้ห้องประชุมได้ แต่ไม่มีสิทธิ์เข้าดูรายละเอียดภารกิจส่วนบุคคลนี้',
+        icon: 'info',
+        confirmButtonText: 'รับทราบ'
+      });
+      return;
+    }
 
     const booking = bookings.find(b => b.taskId === taskId);
     setSelectedTask(task);
@@ -465,7 +485,7 @@ export const Dashboard: React.FC<{ setActivePage: (page: string) => void }> = ({
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
-        {/* KPI 1 (Pastel Blue) */}
+        {/* KPI 1: ภารกิจวันนี้ (Pastel Blue) */}
         <div className="relative overflow-hidden flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-[#e8f1fc] dark:bg-[#1a2d42]/45 border border-[#c1d6ec]/50 dark:border-[#1c354e]/30 shadow-[0_8px_30px_rgb(0,0,0,0.01)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
           <div className="relative z-10 text-left">
             <div className="text-[10px] sm:text-xs font-bold text-[#39668f] dark:text-[#a3c2e1] uppercase tracking-wider">ภารกิจวันนี้</div>
@@ -474,54 +494,50 @@ export const Dashboard: React.FC<{ setActivePage: (page: string) => void }> = ({
           <div className="relative z-10 rounded-xl bg-white/60 dark:bg-slate-800/60 p-2 sm:p-3 text-[#39668f] dark:text-[#a3c2e1] shadow-sm">
             <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
-          {/* Oversized watermark icon */}
           <div className="absolute -right-5 -bottom-7 text-[#6699cc] dark:text-[#a3c2e1] opacity-10 dark:opacity-[0.05] pointer-events-none transform -rotate-12">
             <Calendar className="h-28 w-28" />
           </div>
         </div>
 
-        {/* KPI 2 (Pastel Green) */}
+        {/* KPI 2: กำลังดำเนินการ (Pastel Green) */}
         <div className="relative overflow-hidden flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-[#e6f4ea] dark:bg-[#1a3825]/45 border border-[#c2e7cc]/50 dark:border-[#1e3d29]/30 shadow-[0_8px_30px_rgb(0,0,0,0.01)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
           <div className="relative z-10 text-left">
-            <div className="text-[10px] sm:text-xs font-bold text-[#137333] dark:text-[#81c784] uppercase tracking-wider">ห้องประชุมที่จอง</div>
-            <div className="text-base sm:text-2xl font-bold text-[#0f5224] dark:text-white mt-1">{activeBookingsToday} ห้อง</div>
+            <div className="text-[10px] sm:text-xs font-bold text-[#137333] dark:text-[#81c784] uppercase tracking-wider">กำลังดำเนินการ</div>
+            <div className="text-base sm:text-2xl font-bold text-[#0f5224] dark:text-white mt-1">{inProgressCount} ภารกิจ</div>
           </div>
           <div className="relative z-10 rounded-xl bg-white/60 dark:bg-slate-800/60 p-2 sm:p-3 text-[#137333] dark:text-[#81c784] shadow-sm">
-            <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+            <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
-          {/* Oversized watermark icon */}
           <div className="absolute -right-5 -bottom-7 text-[#81c784] dark:text-[#81c784] opacity-10 dark:opacity-[0.05] pointer-events-none transform -rotate-12">
-            <CheckCircle className="h-28 w-28" />
+            <Clock className="h-28 w-28" />
           </div>
         </div>
 
-        {/* KPI 3 (Pastel Yellow/Amber) */}
+        {/* KPI 3: รอดำเนินการ (Pastel Yellow/Amber) */}
         <div className="relative overflow-hidden flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-[#fef7e0] dark:bg-[#3d331a]/45 border border-[#feefc3]/50 dark:border-[#3a3018]/30 shadow-[0_8px_30px_rgb(0,0,0,0.01)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
           <div className="relative z-10 text-left">
-            <div className="text-[10px] sm:text-xs font-bold text-[#b06000] dark:text-[#ffd54f] uppercase tracking-wider">ห้อง VIP รออนุมัติ</div>
-            <div className="text-base sm:text-2xl font-bold text-[#7c4300] dark:text-white mt-1">{pendingApprovalsCount} รายการ</div>
+            <div className="text-[10px] sm:text-xs font-bold text-[#b06000] dark:text-[#ffd54f] uppercase tracking-wider">รอดำเนินการ</div>
+            <div className="text-base sm:text-2xl font-bold text-[#7c4300] dark:text-white mt-1">{scheduledCount} ภารกิจ</div>
           </div>
           <div className="relative z-10 rounded-xl bg-white/60 dark:bg-slate-800/60 p-2 sm:p-3 text-[#b06000] dark:text-[#ffd54f] shadow-sm">
             <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
-          {/* Oversized watermark icon */}
           <div className="absolute -right-5 -bottom-7 text-[#ffd54f] dark:text-[#ffd54f] opacity-10 dark:opacity-[0.05] pointer-events-none transform -rotate-12">
             <AlertTriangle className="h-28 w-28" />
           </div>
         </div>
 
-        {/* KPI 4 (Pastel Purple) */}
+        {/* KPI 4: เสร็จสิ้น (Pastel Purple) */}
         <div className="relative overflow-hidden flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-[#f3e8fd] dark:bg-[#2d1b4b]/45 border border-[#e9d2fd]/50 dark:border-[#2b1947]/30 shadow-[0_8px_30px_rgb(0,0,0,0.01)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
           <div className="relative z-10 text-left">
-            <div className="text-[10px] sm:text-xs font-bold text-[#6200ee] dark:text-[#b388ff] uppercase tracking-wider">งานเตรียมห้อง</div>
-            <div className="text-base sm:text-2xl font-bold text-[#4a00b0] dark:text-white mt-1">{pendingAssignmentsToday} งาน</div>
+            <div className="text-[10px] sm:text-xs font-bold text-[#6200ee] dark:text-[#b388ff] uppercase tracking-wider">เสร็จสิ้น</div>
+            <div className="text-base sm:text-2xl font-bold text-[#4a00b0] dark:text-white mt-1">{completedCount} ภารกิจ</div>
           </div>
           <div className="relative z-10 rounded-xl bg-white/60 dark:bg-slate-800/60 p-2 sm:p-3 text-[#6200ee] dark:text-[#b388ff] shadow-sm">
-            <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
+            <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
-          {/* Oversized watermark icon */}
           <div className="absolute -right-5 -bottom-7 text-[#b388ff] dark:text-[#b388ff] opacity-10 dark:opacity-[0.05] pointer-events-none transform -rotate-12">
-            <Clock className="h-28 w-28" />
+            <CheckCircle className="h-28 w-28" />
           </div>
         </div>
       </div>
@@ -749,7 +765,7 @@ export const Dashboard: React.FC<{ setActivePage: (page: string) => void }> = ({
                 <div className="divide-y divide-slate-100 dark:divide-slate-800/60 mt-2">
                   {rooms.map(room => {
                     // Get bookings for this room today
-                    const roomBookings = todaysBookings.filter(b => b.roomId === room.id);
+                    const roomBookings = allTodaysBookings.filter(b => b.roomId === room.id);
                     
                     return (
                       <div key={room.id} className="flex py-3.5 items-center">
