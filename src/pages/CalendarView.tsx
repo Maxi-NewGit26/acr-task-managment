@@ -557,41 +557,43 @@ export const CalendarView: React.FC<{ setActivePage: (page: string) => void }> =
       </div>
 
       {/* Filter Controls Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm text-left">
-        <div className="flex flex-wrap items-center gap-3 text-xs">
-          <span className="font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm text-left">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3.5 text-xs w-full sm:w-auto">
+          <span className="font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5 shrink-0">
             <Filter className="h-3.5 w-3.5 text-enterprise-500" />
             <span>ตัวกรองปฏิทิน:</span>
           </span>
 
-          {/* Executive Filter Dropdown */}
-          <div className="flex items-center gap-1.5">
-            <label className="text-[11px] text-slate-400 font-semibold">ผู้บริหาร:</label>
-            <select
-              value={selectedExecFilter}
-              onChange={(e) => setSelectedExecFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50 dark:bg-slate-950 dark:border-slate-800 px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
-            >
-              <option value="all">ทั้งหมด (ทุกผู้บริหาร)</option>
-              {executives.map(e => (
-                <option key={e.id} value={e.id}>{e.name} ({e.position})</option>
-              ))}
-            </select>
-          </div>
+          <div className="flex flex-col xs:flex-row gap-2.5 w-full sm:w-auto">
+            {/* Executive Filter Dropdown */}
+            <div className="flex items-center gap-1.5 w-full sm:w-auto justify-between sm:justify-start">
+              <label className="text-[11px] text-slate-400 font-semibold shrink-0">ผู้บริหาร:</label>
+              <select
+                value={selectedExecFilter}
+                onChange={(e) => setSelectedExecFilter(e.target.value)}
+                className="w-2/3 xs:w-auto max-w-[200px] sm:max-w-xs md:max-w-none rounded-xl border border-slate-200 bg-slate-50 dark:bg-slate-950 dark:border-slate-800 px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer truncate"
+              >
+                <option value="all">ทั้งหมด (ทุกผู้บริหาร)</option>
+                {executives.map(e => (
+                  <option key={e.id} value={e.id}>{e.name} ({e.position})</option>
+                ))}
+              </select>
+            </div>
 
-          {/* Room Filter Dropdown */}
-          <div className="flex items-center gap-1.5">
-            <label className="text-[11px] text-slate-400 font-semibold">ห้องประชุม:</label>
-            <select
-              value={selectedRoomFilter}
-              onChange={(e) => setSelectedRoomFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50 dark:bg-slate-950 dark:border-slate-800 px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
-            >
-              <option value="all">ทั้งหมด (ทุกห้องประชุม)</option>
-              {rooms.map(r => (
-                <option key={r.id} value={r.id}>{r.name} ({r.building})</option>
-              ))}
-            </select>
+            {/* Room Filter Dropdown */}
+            <div className="flex items-center gap-1.5 w-full sm:w-auto justify-between sm:justify-start">
+              <label className="text-[11px] text-slate-400 font-semibold shrink-0">ห้องประชุม:</label>
+              <select
+                value={selectedRoomFilter}
+                onChange={(e) => setSelectedRoomFilter(e.target.value)}
+                className="w-2/3 xs:w-auto max-w-[200px] sm:max-w-xs md:max-w-none rounded-xl border border-slate-200 bg-slate-50 dark:bg-slate-950 dark:border-slate-800 px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer truncate"
+              >
+                <option value="all">ทั้งหมด (ทุกห้องประชุม)</option>
+                {rooms.map(r => (
+                  <option key={r.id} value={r.id}>{r.name} ({r.building})</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Reset Filters Button */}
@@ -601,7 +603,7 @@ export const CalendarView: React.FC<{ setActivePage: (page: string) => void }> =
                 setSelectedExecFilter('all');
                 setSelectedRoomFilter('all');
               }}
-              className="text-enterprise-500 hover:text-enterprise-600 font-semibold text-xs flex items-center gap-1 cursor-pointer bg-enterprise-50 dark:bg-enterprise-950/40 px-2.5 py-1.5 rounded-xl transition-all"
+              className="text-enterprise-500 hover:text-enterprise-600 font-semibold text-xs flex items-center justify-center gap-1 cursor-pointer bg-enterprise-50 dark:bg-enterprise-950/40 px-2.5 py-1.5 rounded-xl transition-all w-full sm:w-auto shrink-0"
             >
               <RotateCcw className="h-3 w-3" />
               <span>ล้างตัวกรอง (แสดงทั้งหมด)</span>
@@ -609,7 +611,7 @@ export const CalendarView: React.FC<{ setActivePage: (page: string) => void }> =
           )}
         </div>
 
-        <div className="text-slate-400 text-xs font-semibold">
+        <div className="text-slate-400 text-xs font-semibold text-right sm:text-left shrink-0">
           แสดงข้อมูล {filteredCalendarTasks.length} รายการ
         </div>
       </div>
