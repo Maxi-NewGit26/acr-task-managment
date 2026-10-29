@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp, User, UserRole } from '../context/AppContext';
 import { Shield, Lock, Mail, LogIn, UserPlus, KeyRound, Server } from 'lucide-react';
 import { auth, googleProvider, db } from '../firebase';
@@ -7,6 +7,8 @@ import {
   createUserWithEmailAndPassword, 
   sendPasswordResetEmail, 
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   setPersistence,
   browserLocalPersistence,
   browserSessionPersistence
@@ -31,6 +33,52 @@ export const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [showDevMode, setShowDevMode] = useState(false);
+
+  const getGoogleAuthErrorMessage = (err: any): string => {
+    const code = err?.code || '';
+    const hostname = window.location.hostname;
+
+    switch (code) {
+      case 'auth/unauthorized-domain':
+        return `โดเมนปัจจุบัน (${hostname}) ยังไม่ได้รับอนุญาตในระบบ Firebase กรุณาไปที่ Firebase Console > Authentication > Settings > Authorized domains แล้วเพิ่ม "${hostname}"`;
+      case 'auth/operation-not-allowed':
+        return 'การเข้าสู่ระบบด้วย Google ยังไม่ได้เปิดใช้งาน กรุณาไปที่ Firebase Console > Authentication > Sign-in method แล้วเปิดใช้งาน Google';
+      case 'auth/popup-blocked':
+        return 'เบราว์เซอร์บล็อกหน้าต่างป๊อปอัป กรุณาอนุญาตป๊อปอัป (Pop-ups) สำหรับเว็บไซต์นี้แล้วลองอีกครั้ง';
+      case 'auth/popup-closed-by-user':
+        return 'หน้าต่างลงชื่อเข้าใช้ถูกปิดก่อนทำรายการสำเร็จ หรือเบราว์เซอร์บล็อกคุกกี้บุคคลที่สาม (Third-party cookies)';
+      case 'auth/network-request-failed':
+        return 'ไม่สามารถเชื่อมต่อเครือข่ายไปยังเซิร์ฟเวอร์ยืนยันตัวตนได้ กรุณาตรวจสอบอินเทอร์เน็ตหรือไฟร์วอลล์';
+      case 'auth/invalid-api-key':
+      case 'auth/api-key-not-valid.-please-pass-a-valid-api-key.':
+        return 'API Key ของ Firebase ไม่ถูกต้องหรือถูกจำกัดสิทธิ์ กรุณาตรวจสอบค่า VITE_FIREBASE_API_KEY ในไฟล์ .env';
+      case 'auth/user-disabled':
+        return 'บัญชีผู้ใช้นี้ถูกระงับการใช้งานในระบบ Firebase';
+      default:
+        return `การลงชื่อเข้าใช้งานด้วย Google ขัดข้อง (${code || err?.message || 'Unknown error'})`;
+    }
+  };
+
+  useEffect(() => {
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result?.user) {
+          Swal.fire({
+            title: 'ลงชื่อเข้าใช้สำเร็จ',
+            text: 'ยินดีต้อนรับด้วยบัญชี Google',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+          });
+        }
+      })
+      .catch((err: any) => {
+        console.error('Google redirect login error:', err);
+        Swal.fire('ลงชื่อเข้าใช้ล้มเหลว', getGoogleAuthErrorMessage(err), 'error');
+      });
+  }, []);
 
   const handleManualLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,6 +169,8 @@ export const Login: React.FC = () => {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
+      const persistence = rememberMe ? browserLocalPersistence : browserSessionPersistence;
+      await setPersistence(auth, persistence);
       await signInWithPopup(auth, googleProvider);
       Swal.fire({
         title: 'ลงชื่อเข้าใช้สำเร็จ',
@@ -132,8 +182,20 @@ export const Login: React.FC = () => {
         position: 'top-end'
       });
     } catch (err: any) {
-      console.warn(err);
-      Swal.fire('ลงชื่อเข้าใช้ล้มเหลว', 'การลงชื่อเข้าใช้งานด้วย Google ขัดข้อง หรือถูกปิดหน้าต่างลงชื่อ', 'error');
+      console.error('Google Sign-In Error:', err);
+      if (err?.code === 'auth/cancelled-popup-request') {
+        return;
+      }
+      if (err?.code === 'auth/popup-blocked') {
+        try {
+          await signInWithRedirect(auth, googleProvider);
+          return;
+        } catch (redirectErr: any) {
+          Swal.fire('ลงชื่อเข้าใช้ล้มเหลว', getGoogleAuthErrorMessage(redirectErr), 'error');
+          return;
+        }
+      }
+      Swal.fire('ลงชื่อเข้าใช้ล้มเหลว', getGoogleAuthErrorMessage(err), 'error');
     } finally {
       setLoading(false);
     }

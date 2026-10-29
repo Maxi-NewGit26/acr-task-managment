@@ -19,6 +19,9 @@ const app = initializeApp(firebaseConfig);
 // Export Auth, Google Auth Provider, Firestore, and Storage
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
